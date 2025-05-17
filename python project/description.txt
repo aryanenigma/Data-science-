@@ -1,0 +1,433 @@
+📦 Import Libraries
+python
+Copy
+Edit
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from statsmodels.tsa.arima.model import ARIMA
+import warnings
+warnings.filterwarnings("ignore")
+pandas is for handling data (like reading CSVs, processing columns).
+
+matplotlib.pyplot and seaborn are for plotting.
+
+ARIMA is used for forecasting time series data.
+
+warnings.filterwarnings("ignore") hides warning messages (to keep output clean).
+
+🔗 Load the CSV from a URL
+python
+Copy
+Edit
+url = "https://raw.githubusercontent.com/plotly/datasets/master/finance-charts-apple.csv"
+df = pd.read_csv(url, parse_dates=["Date"])
+Loads the Apple stock dataset.
+
+Converts the Date column into actual date objects.
+
+🧼 Clean the Column Names
+python
+Copy
+Edit
+df.columns = df.columns.str.strip()
+Removes leading/trailing spaces from column names (helps avoid KeyError).
+
+🕵️‍♂️ Explore the Data
+python
+Copy
+Edit
+print("Columns in CSV:", df.columns.tolist())
+print("\nFirst 5 rows:")
+print(df.head())
+print("\nMissing values:\n", df.isnull().sum())
+Lists all column names.
+
+Shows the first 5 rows of the data.
+
+Displays how many missing values are in each column.
+
+📅 Set Date as Index
+python
+Copy
+Edit
+df.set_index("Date", inplace=True)
+Makes Date the index (required for time series plotting and ARIMA).
+
+📈 Plot Closing Price
+python
+Copy
+Edit
+plt.figure(figsize=(12, 6))
+plt.plot(df['AAPL.Close'], label='Close Price')
+plt.title("Stock Closing Price Over Time")
+plt.xlabel("Date")
+plt.ylabel("Price")
+plt.grid(True)
+plt.legend()
+plt.show()
+Plots the daily closing price of Apple stock.
+
+📊 Calculate and Plot Moving Average
+python
+Copy
+Edit
+df['MA20'] = df['AAPL.Close'].rolling(window=20).mean()
+Calculates a 20-day moving average.
+
+python
+Copy
+Edit
+plt.figure(figsize=(12, 6))
+plt.plot(df['AAPL.Close'], label='Close Price')
+plt.plot(df['MA20'], label='20-Day MA', color='orange')
+plt.title("20-Day Moving Average")
+plt.xlabel("Date")
+plt.ylabel("Price")
+plt.legend()
+plt.grid(True)
+plt.show()
+Plots the stock price along with the moving average.
+
+📉 Daily Return Calculation
+python
+Copy
+Edit
+df['Daily Return'] = df['AAPL.Close'].pct_change()
+Calculates percent change between each day’s close.
+
+python
+Copy
+Edit
+plt.figure(figsize=(10, 4))
+df['Daily Return'].hist(bins=50, color='skyblue', edgecolor='black')
+plt.title("Daily Return Distribution")
+plt.xlabel("Daily Return")
+plt.grid(True)
+plt.show()
+Shows histogram of daily return (helps understand volatility).
+
+📈 Cumulative Return
+python
+Copy
+Edit
+df['Cumulative Return'] = (1 + df['Daily Return']).cumprod()
+Computes the cumulative return over time (how an investment grows).
+
+python
+Copy
+Edit
+plt.figure(figsize=(12, 5))
+plt.plot(df['Cumulative Return'], label='Cumulative Return', color='purple')
+plt.title("Cumulative Returns Over Time")
+plt.xlabel("Date")
+plt.ylabel("Cumulative Growth")
+plt.grid(True)
+plt.legend()
+plt.show()
+Plots how the stock grows over time with compounding.
+
+📉 Bollinger Bands
+python
+Copy
+Edit
+df['STD20'] = df['AAPL.Close'].rolling(window=20).std()
+df['Upper Band'] = df['MA20'] + (df['STD20'] * 2)
+df['Lower Band'] = df['MA20'] - (df['STD20'] * 2)
+Standard deviation helps define upper/lower price bounds.
+
+python
+Copy
+Edit
+plt.figure(figsize=(12, 6))
+plt.plot(df['AAPL.Close'], label='Close')
+plt.plot(df['Upper Band'], label='Upper Band', linestyle='--', color='red')
+plt.plot(df['Lower Band'], label='Lower Band', linestyle='--', color='green')
+plt.fill_between(df.index, df['Lower Band'], df['Upper Band'], color='gray', alpha=0.1)
+plt.title("Bollinger Bands")
+plt.legend()
+plt.grid(True)
+plt.show()
+Plots the price along with the bands to detect overbought/oversold conditions.
+
+🔍 Correlation Heatmap
+python
+Copy
+Edit
+plt.figure(figsize=(8, 6))
+sns.heatmap(df.corr(), annot=True, cmap="coolwarm")
+plt.title("Feature Correlation")
+plt.show()
+Shows how different features are correlated (for example, MA20 and Close).
+
+🤖 ARIMA Forecasting (Next 10 Days)
+python
+Copy
+Edit
+model = ARIMA(df['AAPL.Close'].dropna(), order=(5, 1, 0))
+model_fit = model.fit()
+forecast = model_fit.forecast(steps=10)
+Fits an ARIMA model for forecasting future prices.
+
+order=(5, 1, 0) → 5 lag terms, 1 difference, 0 moving average terms.
+
+python
+Copy
+Edit
+print("\nForecasted Prices (Next 10 Days):")
+print(forecast)
+Prints forecasted values.
+
+python
+Copy
+Edit
+plt.figure(figsize=(12, 6))
+plt.plot(df['AAPL.Close'], label="Historical")
+plt.plot(pd.date_range(df.index[-1], periods=10, freq='D')[1:], forecast, label="Forecast", color="red")
+plt.title("ARIMA Forecast - Next 10 Days")
+plt.xlabel("Date")
+plt.ylabel("Price")
+plt.legend()
+plt.grid(True)
+plt.show()
+Plots both historical prices and forecasted prices into the future.
+plt.figure(figsize=(12, 6))                      # Set the size of the plot
+plt.plot(df['AAPL.Close'], label='Close Price')  # Plot closing price with a label
+plt.plot(df['MA20'], label='20-Day MA')          # Plot moving average with a label
+plt.title("Apple Stock with Moving Average")     # Add a title
+plt.xlabel("Date")                               # Label x-axis
+plt.ylabel("Price (USD)")                        # Label y-axis
+plt.grid(True)                                   # Show grid lines
+plt.legend()                                     # Show legend for line labels
+plt.show()                                       # Render the plot
+
+
+🔹 1. Read a CSV file with parsed dates
+python
+Copy
+Edit
+df = pd.read_csv(url, parse_dates=["Date"])
+pd.read_csv() is a function from the Pandas library that reads data from a CSV file and converts it into a DataFrame (a 2D table like Excel).
+
+url should contain a valid link to a CSV file.
+
+parse_dates=["Date"] tells pandas: "Convert the 'Date' column from a text string to an actual date format (datetime64) so we can use it for time-series analysis."
+
+✅ This is essential when you're working with stock market data, which is inherently time-based.
+
+🔹 2. Strip column names of extra whitespace
+python
+Copy
+Edit
+df.columns = df.columns.str.strip()  # Remove whitespace
+Sometimes, column names in a CSV have leading or trailing spaces, like " Close " instead of "Close".
+
+.str.strip() removes these spaces.
+
+This step helps avoid KeyError when you try to access a column name that has invisible whitespace.
+
+🔹 3. Print column names for confirmation
+python
+Copy
+Edit
+print("Columns in CSV:", df.columns.tolist())
+This displays the actual column names in a Python list.
+
+Useful to:
+
+Debug if column names are not as expected.
+
+Decide which columns you want to use (like closing price, volume, etc.).
+
+🔹 4. Set a specific column name for easy reuse
+python
+Copy
+Edit
+close_col = 'AAPL.Close'
+The dataset uses 'AAPL.Close' instead of just 'Close'.
+
+Assigning this to close_col makes your code easier to maintain:
+
+If the column name changes later, you just update it in one place.
+
+🔹 5. View sample rows and inspect missing data
+python
+Copy
+Edit
+print("\nFirst 5 rows:")
+print(df.head())
+df.head() shows the first 5 rows of the DataFrame.
+
+Helps you understand:
+
+What kind of data you’re dealing with.
+
+What the structure looks like.
+
+python
+Copy
+Edit
+print("\nMissing values:\n", df.isnull().sum())
+df.isnull() checks for missing (empty) values.
+
+.sum() counts how many nulls are in each column.
+
+Important step in data cleaning — especially in financial data, missing prices can lead to wrong calculations.
+
+🔹 6. Set the date as the index
+python
+Copy
+Edit
+df.set_index("Date", inplace=True)
+Indexes in pandas are like row labels. Setting "Date" as the index allows:
+
+Time-based slicing (df['2024-01'])
+
+Using time-series models like ARIMA or plotting over time
+
+inplace=True means the change is made to the original DataFrame (not a copy).
+
+🧠 Why is this important for stocks?
+It turns your DataFrame into a time-series DataFrame, allowing you to easily:
+
+Resample by week/month
+
+Compute rolling averages
+
+Forecast with ARIMA or Prophet
+
+🔹 Section 1: 20-Day Moving Average (Trend Analysis)
+python
+Copy
+Edit
+df['MA20'] = df[close_col].rolling(window=20).mean()
+df[close_col]: Gets the column containing the stock's closing prices, e.g., 'AAPL.Close'.
+
+.rolling(window=20): Creates a rolling window of size 20 (i.e., 20 trading days).
+
+.mean(): Calculates the average of the values in that 20-day window.
+
+df['MA20'] = ...: Adds this as a new column called 'MA20' to the DataFrame.
+
+✅ This smooths out the price data to show overall trends and reduces short-term noise.
+
+python
+Copy
+Edit
+plt.figure(figsize=(12, 6))
+plt.plot(df[close_col], label='Close Price')
+plt.plot(df['MA20'], label='20-Day MA', color='orange')
+plt.title("20-Day Moving Average")
+plt.xlabel("Date")
+plt.ylabel("Price")
+plt.legend()
+plt.grid(True)
+plt.show()
+Creates a plot showing the original close price and the 20-day moving average.
+
+figsize=(12, 6): Makes the plot large and clear.
+
+Two lines are drawn:
+
+Actual price (df[close_col]) in default color
+
+20-day average (df['MA20']) in orange
+
+legend(), title(), xlabel(), and grid() are for visual clarity.
+
+🔹 Section 2: Daily Returns (Volatility Analysis)
+python
+Copy
+Edit
+df['Daily Return'] = df[close_col].pct_change()
+.pct_change(): Computes the percentage change from one day to the next.
+
+Formula: 
+(
+𝑇
+𝑜
+𝑑
+𝑎
+𝑦
+′
+𝑠
+𝑃
+𝑟
+𝑖
+𝑐
+𝑒
+−
+𝑌
+𝑒
+𝑠
+𝑡
+𝑒
+𝑟
+𝑑
+𝑎
+𝑦
+′
+𝑠
+𝑃
+𝑟
+𝑖
+𝑐
+𝑒
+)
+/
+𝑌
+𝑒
+𝑠
+𝑡
+𝑒
+𝑟
+𝑑
+𝑎
+𝑦
+′
+𝑠
+𝑃
+𝑟
+𝑖
+𝑐
+𝑒
+(Today 
+′
+ sPrice−Yesterday 
+′
+ sPrice)/Yesterday 
+′
+ sPrice
+
+df['Daily Return']: Adds a new column showing the daily return.
+
+✅ This helps measure how much the stock moves daily, which is a key indicator of volatility and risk.
+
+python
+Copy
+Edit
+plt.figure(figsize=(10, 4))
+df['Daily Return'].hist(bins=50, color='skyblue', edgecolor='black')
+plt.title("Daily Return Distribution")
+plt.xlabel("Daily Return")
+plt.grid(True)
+plt.show()
+Creates a histogram to show the distribution of daily returns.
+
+bins=50: Breaks the data into 50 buckets.
+
+A bell-shaped histogram indicates a normal distribution, which is common for financial returns.
+
+Helps you visually understand:
+
+How volatile the stock is.
+
+Whether returns are centered around zero or skewed.
+
+✅ Summary:
+Code Part	What It Does	Why It Matters
+rolling().mean()	Computes 20-day moving average	Shows price trends
+pct_change()	Calculates day-to-day returns	Measures volatility
+plot()	Visualizes time series data	Helps spot trends visually
+hist()	Visualizes return distribution	Helps understand risk profile
+
